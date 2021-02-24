@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  nginx:
+    container_name: example_nginx
+    build:
+      context: ./_docker/nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - .:/var/www/html
+    restart: always
+    depends_on:
+      - php-fpm
+  php-fpm:
+    container_name: example_php-fpm
+    build:
+      context: ./_docker/php/fpm
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    restart: always
+    depends_on:
+      - postgresql
+  php-cli:
+    container_name: example_php-cli
+    build:
+      context: ./_docker/php/cli
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    restart: always
+    depends_on:
+      - postgresql
+    tty: true
+    init: true
+  postgresql:
+    container_name: example_postgresql
+    build:
+      context: ./_docker/postgresql
+      dockerfile: Dockerfile
+    environment:
+      PGDATA: '/var/lib/postgresql/data'
+      POSTGRES_HOST_AUTH_METHOD: 'md5'
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'example'
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    restart: always
+volumes:
+  postgresql_data:
+    driver: local
